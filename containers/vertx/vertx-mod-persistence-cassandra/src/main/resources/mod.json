@@ -1,0 +1,10 @@
+{
+    "main": "com.englishtown.vertx.CassandraPersistence",
+    "worker": true,
+    "multi-threaded": true,
+    "includes": "com.englishtown~vertx-mod-hk2~1.5.0-final",
+
+    "description": "Read and write persistent maps to Cassandra",
+    "author": "adrianluisgonzalez",
+    "keywords": ["Cassandra", "persistence"]
+}
