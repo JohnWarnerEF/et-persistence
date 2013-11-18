@@ -3,6 +3,7 @@ package com.englishtown.vertx.persistence.impl;
 import com.englishtown.persistence.*;
 import com.englishtown.promises.Deferred;
 import com.englishtown.promises.Promise;
+import com.englishtown.promises.Value;
 import com.englishtown.promises.When;
 import com.englishtown.vertx.persistence.MessageBuilder;
 import com.englishtown.vertx.persistence.MessageReader;
@@ -17,9 +18,9 @@ import javax.inject.Inject;
 import java.util.List;
 
 /**
- * Default implementation of {@link StorageService}
+ * Default implementation of {@link PersistenceService}
  */
-public class DefaultStorageService implements StorageService {
+public class DefaultPersistenceService implements PersistenceService {
 
     private final EventBus eventBus;
     private final MessageBuilder messageBuilder;
@@ -29,7 +30,7 @@ public class DefaultStorageService implements StorageService {
     public static final String CONFIG_ADDRESS = "et.persistence.address";
 
     @Inject
-    public DefaultStorageService(
+    public DefaultPersistenceService(
             Vertx vertx,
             Container container,
             MessageBuilder messageBuilder,
@@ -62,7 +63,11 @@ public class DefaultStorageService implements StorageService {
         eventBus.send(getAddress(), message, new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> reply) {
-                messageReader.readLoadReply(reply, keys, d.getResolver());
+                try {
+                    messageReader.readLoadReply(reply, keys, d.getResolver());
+                } catch (RuntimeException e) {
+                    d.getResolver().reject(new Value<LoadResult>(null, e));
+                }
             }
         });
 
@@ -83,7 +88,11 @@ public class DefaultStorageService implements StorageService {
         eventBus.send(getAddress(), message, new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> reply) {
-                messageReader.readStoreReply(reply, entities, d.getResolver());
+                try {
+                    messageReader.readStoreReply(reply, entities, d.getResolver());
+                } catch (RuntimeException e) {
+                    d.getResolver().reject(new Value<StoreResult>(null, e));
+                }
             }
         });
 

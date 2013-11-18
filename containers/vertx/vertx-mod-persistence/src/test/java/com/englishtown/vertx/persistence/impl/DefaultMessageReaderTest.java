@@ -1,15 +1,16 @@
 package com.englishtown.vertx.persistence.impl;
 
-import com.englishtown.persistence.LoadResult;
-import com.englishtown.persistence.PersistentMapFactory;
-import com.englishtown.persistence.StoreResult;
+import com.englishtown.persistence.*;
 import com.englishtown.persistence.impl.DefaultLoadResult;
 import com.englishtown.persistence.impl.DefaultPersistentMap;
+import com.englishtown.persistence.impl.DefaultStoreResult;
 import com.englishtown.promises.Resolver;
 import com.englishtown.promises.Value;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertx.java.core.eventbus.Message;
@@ -17,11 +18,16 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import javax.inject.Provider;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.vertx.testtools.VertxAssert.assertFalse;
 
 /**
  * Unit tests for {@link DefaultMessageReader}
@@ -43,6 +49,10 @@ public class DefaultMessageReaderTest {
     Provider<StoreResult> storeResultProvider;
     @Mock
     Provider<LoadResult> loadResultProvider;
+    @Mock
+    Resolver<StoreResult, Void> resolver;
+    @Captor
+    ArgumentCaptor<StoreResult> storeResultCaptor;
 
     @Before
     public void setUp() {
@@ -93,6 +103,8 @@ public class DefaultMessageReaderTest {
                         .putObject("fields", fields)
                         .putObject("sys_fields", sysFields));
 
+        sysFields.putArray("acl", new JsonArray().addString(UUID.randomUUID().toString()));
+
         body.putString("status", "ok")
                 .putArray("entities", entities);
 
@@ -102,7 +114,61 @@ public class DefaultMessageReaderTest {
     }
 
     @Test
-    public void testReadStoreReply() throws Exception {
+    public void testReadStoreReply_OK() throws Exception {
+
+        when(storeResultProvider.get()).thenReturn(new DefaultStoreResult());
+        List<PersistentMap> entities = new ArrayList<>();
+        PersistentMap entity1 = mock(PersistentMap.class);
+        PersistentMap entity2 = mock(PersistentMap.class);
+
+        entities.add(entity1);
+        entities.add(entity2);
+
+        body.putString("status", "ok");
+
+        reader.readStoreReply(message, entities, resolver);
+        verify(resolver).resolve(storeResultCaptor.capture());
+
+        StoreResult result = storeResultCaptor.getValue();
+        assertTrue(result.succeeded());
+        assertEquals(2, result.getSucceeded().size());
+        assertEquals(entity1, result.getSucceeded().get(0));
+        assertEquals(entity2, result.getSucceeded().get(1));
 
     }
+
+    @Test
+    public void testReadStoreReply_Error() throws Exception {
+
+        when(storeResultProvider.get()).thenReturn(new DefaultStoreResult());
+        List<PersistentMap> entities = new ArrayList<>();
+        PersistentMap entity1 = mock(PersistentMap.class);
+        PersistentMap entity2 = mock(PersistentMap.class);
+
+        entities.add(entity1);
+        entities.add(entity2);
+
+        String testMessage = "test message";
+        body.putString("status", "error")
+                .putString("message", testMessage);
+
+        reader.readStoreReply(message, entities, resolver);
+        verify(resolver).reject(storeResultCaptor.capture());
+
+        StoreResult result = storeResultCaptor.getValue();
+        assertFalse(result.succeeded());
+        assertEquals(0, result.getSucceeded().size());
+        assertEquals(2, result.getFailed().size());
+
+        FailedPersistentMap failed1 = result.getFailed().get(0);
+        FailedPersistentMap failed2 = result.getFailed().get(1);
+
+        assertEquals(entity1, failed1.getPersistentMap());
+        assertEquals(entity2, failed2.getPersistentMap());
+
+        assertEquals(testMessage, failed1.getCause().getMessage());
+        assertEquals(testMessage, failed2.getCause().getMessage());
+
+    }
+
 }

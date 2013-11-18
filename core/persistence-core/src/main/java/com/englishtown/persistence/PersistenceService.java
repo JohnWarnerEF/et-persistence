@@ -5,9 +5,9 @@ import com.englishtown.promises.Promise;
 import java.util.List;
 
 /**
- * Service to store data and load data maps
+ * Service to store and load persistent maps
  */
-public interface StorageService {
+public interface PersistenceService {
 
     /**
      * Load a list of persistent maps
@@ -18,7 +18,7 @@ public interface StorageService {
     public Promise<LoadResult, Void> load(List<EntityKey> keys);
 
     /**
-     * Stores a list of entities
+     * Store a list of entities
      *
      * @param objects the entities to be stored
      */

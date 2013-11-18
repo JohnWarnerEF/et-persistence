@@ -3,7 +3,7 @@ package com.englishtown.persistence;
 import java.util.List;
 
 /**
- * {@link StorageService} operation result
+ * {@link PersistenceService} operation result
  */
 public interface PersistenceResult<TSuccess, TFail> {
 

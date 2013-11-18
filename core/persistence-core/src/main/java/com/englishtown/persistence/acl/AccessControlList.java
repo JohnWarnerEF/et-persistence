@@ -13,8 +13,6 @@ import java.util.UUID;
 
 public class AccessControlList extends TreeSet<UUID> {
 
-    private static final Logger logger = LoggerFactory.getLogger(AccessControlList.class.getName());
-
     public AccessControlList() {
     }
 

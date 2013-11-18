@@ -32,12 +32,12 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for {@link DefaultStorageService}
+ * Unit tests for {@link DefaultPersistenceService}
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultStorageServiceTest {
+public class DefaultPersistenceServiceTest {
 
-    DefaultStorageService service;
+    DefaultPersistenceService service;
     String address = "et.persistence.cassandra";
     JsonObject replyJson = new JsonObject();
     JsonObject config = new JsonObject();
@@ -71,8 +71,8 @@ public class DefaultStorageServiceTest {
         when(vertx.eventBus()).thenReturn(eventBus);
         when(replyMessage.body()).thenReturn(replyJson);
         when(container.config()).thenReturn(config);
-        config.putString(DefaultStorageService.CONFIG_ADDRESS, address);
-        service = new DefaultStorageService(vertx, container, messageBuilder, messageReader);
+        config.putString(DefaultPersistenceService.CONFIG_ADDRESS, address);
+        service = new DefaultPersistenceService(vertx, container, messageBuilder, messageReader);
     }
 
     @Test

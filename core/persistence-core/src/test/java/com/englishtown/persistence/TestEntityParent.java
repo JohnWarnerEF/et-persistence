@@ -28,6 +28,15 @@ public class TestEntityParent implements PersistentMap {
     @Column(name = "string_field")
     private String stringField;
 
+    public String getStringField() {
+        return stringField;
+    }
+
+    public TestEntityParent setStringField(String value) {
+        stringField = value;
+        return this;
+    }
+
     /**
      * The persistent map's sysFields
      *

@@ -53,6 +53,7 @@ public abstract class EntityRefInfoBase implements EntityRefInfo {
 
         Table table;
 
+        // Handle sets/lists, get the table from the type argument
         if (typeInfo.getTypeArguments().length == 1) {
             Class<?> clazz = (Class<?>) typeInfo.getTypeArguments()[0];
             table = ReflectionUtils.getAnnotation(Table.class, clazz);

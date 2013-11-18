@@ -10,7 +10,7 @@ import com.englishtown.vertx.persistence.MessageBuilder;
 import com.englishtown.vertx.persistence.MessageReader;
 import com.englishtown.vertx.persistence.impl.DefaultMessageBuilder;
 import com.englishtown.vertx.persistence.impl.DefaultMessageReader;
-import com.englishtown.vertx.persistence.impl.DefaultStorageService;
+import com.englishtown.vertx.persistence.impl.DefaultPersistenceService;
 import org.junit.Test;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Future;
@@ -32,7 +32,7 @@ import static org.vertx.testtools.VertxAssert.*;
 public class CassandraIntegrationTest extends TestVerticle {
 
     String address = "et.persistence.cassandra";
-    DefaultStorageService service;
+    DefaultPersistenceService service;
     PersistentMapFactory dataMapFactory;
     MessageBuilder messageBuilder;
     MessageReader messageReader;
@@ -96,7 +96,7 @@ public class CassandraIntegrationTest extends TestVerticle {
     @Override
     public void start() {
 
-        container.config().putString(DefaultStorageService.CONFIG_ADDRESS, address);
+        container.config().putString(DefaultPersistenceService.CONFIG_ADDRESS, address);
 
         //noinspection unchecked
         Provider<StoreResult> storeResultProvider = mock(Provider.class);
@@ -109,7 +109,7 @@ public class CassandraIntegrationTest extends TestVerticle {
         messageBuilder = new DefaultMessageBuilder(new DefaultEntityMetadataService(), new DefaultIDGenerator());
         messageReader = new DefaultMessageReader(dataMapFactory, storeResultProvider, loadResultProvider);
 
-        service = new DefaultStorageService(vertx, container, messageBuilder, messageReader);
+        service = new DefaultPersistenceService(vertx, container, messageBuilder, messageReader);
 
         super.start();
     }

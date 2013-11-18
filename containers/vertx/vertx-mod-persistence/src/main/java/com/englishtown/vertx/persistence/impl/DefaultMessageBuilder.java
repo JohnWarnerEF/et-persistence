@@ -75,6 +75,7 @@ public class DefaultMessageBuilder implements MessageBuilder {
             }
         }
 
+        // TODO: Config flag not to add schemas to make messages smaller
         message.putObject("schemas", buildSchemas(schemaMap));
 
         return message;
@@ -142,6 +143,8 @@ public class DefaultMessageBuilder implements MessageBuilder {
 
     private JsonObject buildSchemas(Map<String, EntityMetadata> schemaMap) {
         JsonObject schemas = new JsonObject();
+
+        // TODO: Cache json schemas
 
         for (Map.Entry<String, EntityMetadata> entry : schemaMap.entrySet()) {
             String name = entry.getKey();
