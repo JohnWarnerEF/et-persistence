@@ -5,14 +5,12 @@ package com.englishtown.persistence;
  */
 public interface EntityRefInfo {
 
-    String getName();
+    String getId();
 
     String getTable();
 
     String getSchema();
 
-    TypeInfo getTypeInfo();
-
-    Object getValue(Object entity);
+    // TODO: Add getPersistentMap() and isLoaded()?
 
 }

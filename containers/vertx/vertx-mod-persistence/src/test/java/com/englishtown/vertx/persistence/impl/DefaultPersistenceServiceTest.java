@@ -175,7 +175,7 @@ public class DefaultPersistenceServiceTest {
 //        assertNotNull(json);
 //        assertEquals("load", json.getString("action"));
 //
-//        JsonArray jsonKeys = json.getArray("keys");
+//        JsonArray jsonKeys = json.getArray("refs");
 //        assertNotNull(jsonKeys);
 //        assertEquals(2, jsonKeys.size());
 //        assertEquals("123", jsonKeys.<JsonObject>get(0).getString("id"));

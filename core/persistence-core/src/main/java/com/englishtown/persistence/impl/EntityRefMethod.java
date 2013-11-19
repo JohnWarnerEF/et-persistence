@@ -8,11 +8,11 @@ import java.lang.reflect.Method;
 /**
  * {@link com.englishtown.persistence.EntityRefInfo} implementation for Fields
  */
-public class MethodEntityRefInfo extends EntityRefInfoBase {
+public class EntityRefMethod extends EntityRefMemberBase {
 
     private Method method;
 
-    protected MethodEntityRefInfo(String name, Method method, TypeInfo typeInfo) {
+    protected EntityRefMethod(String name, Method method, TypeInfo typeInfo) {
         super(name, method, typeInfo);
         this.method = method;
         method.setAccessible(true);

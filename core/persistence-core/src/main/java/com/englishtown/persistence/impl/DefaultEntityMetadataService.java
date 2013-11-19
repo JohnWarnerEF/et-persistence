@@ -86,7 +86,7 @@ public class DefaultEntityMetadataService implements EntityMetadataService {
 
             if (ref != null) {
                 checkName(ref.name(), method, ref);
-                EntityRefInfo refInfo = new MethodEntityRefInfo(ref.name(), method, typeInfo);
+                EntityRefMember refInfo = new EntityRefMethod(ref.name(), method, typeInfo);
                 addEntityRef(metadata, refInfo);
             }
         }
@@ -110,7 +110,7 @@ public class DefaultEntityMetadataService implements EntityMetadataService {
 
             if (ref != null) {
                 checkName(ref.name(), field, ref);
-                EntityRefInfo refInfo = new FieldEntityRefInfo(ref.name(), field, typeInfo);
+                EntityRefMember refInfo = new EntityRefField(ref.name(), field, typeInfo);
                 addEntityRef(metadata, refInfo);
             }
         }
@@ -126,7 +126,7 @@ public class DefaultEntityMetadataService implements EntityMetadataService {
         return list;
     }
 
-    private void addEntityRef(EntityMetadata metadata, EntityRefInfo ref) {
+    private void addEntityRef(EntityMetadata metadata, EntityRefMember ref) {
         metadata.getEntityRefs().put(ref.getName(), ref);
     }
 

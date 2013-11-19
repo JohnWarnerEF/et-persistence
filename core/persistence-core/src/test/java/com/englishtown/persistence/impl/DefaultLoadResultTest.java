@@ -1,6 +1,7 @@
 package com.englishtown.persistence.impl;
 
 import com.englishtown.persistence.EntityKey;
+import com.englishtown.persistence.LoadedPersistentMap;
 import com.englishtown.persistence.PersistentMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +27,7 @@ public class DefaultLoadResultTest {
     public void testSucceeded() throws Exception {
         assertFalse(result.succeeded());
 
-        result.getSucceeded().add(mock(PersistentMap.class));
+        result.getSucceeded().add(mock(LoadedPersistentMap.class));
         assertTrue(result.succeeded());
 
         EntityKey failed = mock(EntityKey.class);
@@ -38,11 +39,11 @@ public class DefaultLoadResultTest {
     @Test
     public void testGetSucceeded() throws Exception {
 
-        List<PersistentMap> succeeded = result.getSucceeded();
+        List<LoadedPersistentMap> succeeded = result.getSucceeded();
         assertNotNull(succeeded);
         assertEquals(0, succeeded.size());
 
-        result.getSucceeded().add(mock(PersistentMap.class));
+        result.getSucceeded().add(mock(LoadedPersistentMap.class));
         assertEquals(1, succeeded.size());
 
     }

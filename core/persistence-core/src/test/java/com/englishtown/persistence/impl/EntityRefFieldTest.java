@@ -5,36 +5,35 @@ import com.englishtown.persistence.TypeInfo;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Unit tests for {@link MethodEntityRefInfo}
+ * Unit tests for {@link EntityRefField}
  */
-public class MethodEntityRefInfoTest {
+public class EntityRefFieldTest {
+
     @Test
     public void testSimple() throws Exception {
 
         String value = "test.value";
         DefaultPersistentMap persistentMap = new DefaultPersistentMap();
         TestEntityParent entityParent = new TestEntityParent(persistentMap);
-        entityParent.setString(value);
+        entityParent.setStringField(value);
 
-        String name = "string_val";
-        Method method = entityParent.getClass().getDeclaredMethod("getString");
-        assertNotNull(method);
+        String name = "string_field";
+        Field field = entityParent.getClass().getDeclaredField("stringField");
+        assertNotNull(field);
         TypeInfo typeInfo = new TypeInfo(entityParent.getClass());
 
-        MethodEntityRefInfo refInfo = new MethodEntityRefInfo(name, method, typeInfo);
+        EntityRefField refInfo = new EntityRefField(name, field, typeInfo);
 
         assertEquals(name, refInfo.getName());
-        assertEquals("parent", refInfo.getTable());
-        assertEquals("et_core_test", refInfo.getSchema());
-        assertEquals(method, refInfo.getMember());
+        assertEquals(field, refInfo.getMember());
         assertEquals(typeInfo, refInfo.getTypeInfo());
         assertEquals(value, refInfo.getValue(entityParent));
 
     }
+
 }

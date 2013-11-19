@@ -2,6 +2,7 @@ package com.englishtown.vertx.persistence.impl;
 
 import com.englishtown.persistence.*;
 import com.englishtown.vertx.persistence.MessageBuilder;
+import com.englishtown.vertx.persistence.SchemaCache;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonElement;
 import org.vertx.java.core.json.JsonObject;
@@ -17,11 +18,13 @@ public class DefaultMessageBuilder implements MessageBuilder {
 
     private final EntityMetadataService metadataService;
     private final IDGenerator idGenerator;
+    private final SchemaCache schemaCache;
 
     @Inject
-    public DefaultMessageBuilder(EntityMetadataService metadataService, IDGenerator idGenerator) {
+    public DefaultMessageBuilder(EntityMetadataService metadataService, IDGenerator idGenerator, SchemaCache schemaCache) {
         this.metadataService = metadataService;
         this.idGenerator = idGenerator;
+        this.schemaCache = schemaCache;
     }
 
     /**
@@ -32,22 +35,23 @@ public class DefaultMessageBuilder implements MessageBuilder {
      */
     @Override
     public JsonObject buildLoadMessage(List<EntityKey> keys) {
-        JsonArray keyArray = new JsonArray();
+        JsonArray refs = new JsonArray();
 
         if (keys != null && keys.size() > 0) {
             for (EntityKey key : keys) {
                 EntityMetadata metadata = metadataService.get(key.getEntityClass());
-                keyArray.addObject(new JsonObject()
+                refs.addObject(new JsonObject()
                         .putString("id", key.getId())
                         .putString("table", metadata.getTable())
                         .putString("schema", metadata.getSchema())
+                        .putString("type", "EntityRef")
                 );
             }
         }
 
         return new JsonObject()
                 .putString("action", "load")
-                .putArray("keys", keyArray);
+                .putArray("refs", refs);
     }
 
     /**
@@ -75,7 +79,7 @@ public class DefaultMessageBuilder implements MessageBuilder {
             }
         }
 
-        // TODO: Config flag not to add schemas to make messages smaller
+        // TODO: Config flag to skip adding schemas to make messages smaller
         message.putObject("schemas", buildSchemas(schemaMap));
 
         return message;
@@ -84,7 +88,7 @@ public class DefaultMessageBuilder implements MessageBuilder {
 
     protected void traverseEntity(PersistentMap obj, JsonArray entities, Set<PersistentMap> completeSet, Map<String, EntityMetadata> schemaMap) {
 
-        // Build message for entity and add entity refs to list of related data maps
+        // Build message for entity and add entity refs to list of related persistent maps
         List<PersistentMap> related = new ArrayList<>();
         entities.addObject(buildEntity(obj, schemaMap, related));
 
@@ -124,8 +128,8 @@ public class DefaultMessageBuilder implements MessageBuilder {
         }
 
         // Add entity refs
-        for (Map.Entry<String, EntityRefInfo> entry : metadata.getEntityRefs().entrySet()) {
-            EntityRefInfo ref = entry.getValue();
+        for (Map.Entry<String, EntityRefMember> entry : metadata.getEntityRefs().entrySet()) {
+            EntityRefMember ref = entry.getValue();
             Object refObj = ref.getValue(entity);
 
             if (refObj != null) {
@@ -144,79 +148,91 @@ public class DefaultMessageBuilder implements MessageBuilder {
     private JsonObject buildSchemas(Map<String, EntityMetadata> schemaMap) {
         JsonObject schemas = new JsonObject();
 
-        // TODO: Cache json schemas
-
         for (Map.Entry<String, EntityMetadata> entry : schemaMap.entrySet()) {
-            String name = entry.getKey();
-            EntityMetadata metadata = entry.getValue();
+            String type = entry.getKey();
 
-            JsonObject schema = new JsonObject();
+            // Get schema from cache
+            JsonObject schema = schemaCache.get(type);
 
-            schema.putArray("sys_fields", new JsonArray()
-                    .addObject(new JsonObject()
-                            .putString("name", "id")
-                            .putString("type", UUID.class.getName()))
-                    .addObject(new JsonObject()
-                            .putString("name", "version")
-                            .putString("type", Integer.class.getName()))
-                    .addObject(new JsonObject()
-                            .putString("name", "acl")
-                            .putString("type", Set.class.getName())
-                            .putArray("typeArgs", new JsonArray().addString(UUID.class.getName())))
-                    .addObject(new JsonObject()
-                            .putString("name", "type")
-                            .putString("type", String.class.getName()))
-                    .addObject(new JsonObject()
-                            .putString("name", "update_date")
-                            .putString("type", Date.class.getName()))
-            );
-
-            JsonArray fields = new JsonArray();
-            schema.putArray("fields", fields);
-
-            for (Map.Entry<String, TypeInfo> field : metadata.getFields().entrySet()) {
-                TypeInfo typeInfo = field.getValue();
-
-                JsonObject type = new JsonObject()
-                        .putString("name", field.getKey())
-                        .putString("type", typeInfo.getRawType().getName());
-
-                if (typeInfo.getTypeArguments() != null && typeInfo.getTypeArguments().length > 0) {
-                    JsonArray typeArgs = new JsonArray();
-                    for (Type t : typeInfo.getTypeArguments()) {
-                        if (t instanceof Class<?>) {
-                            Class<?> clazz = (Class<?>) t;
-                            typeArgs.addString(clazz.getName());
-                        } else {
-                            throw new IllegalArgumentException("Unsupported type argument: " + t.toString());
-                        }
-                    }
-                    type.putArray("typeArgs", typeArgs);
-                }
-
-                fields.addObject(type);
+            // Build and add if missing
+            if (schema == null) {
+                schema = buildSchema(entry);
+                schemaCache.put(type, schema);
             }
 
-            for (Map.Entry<String, EntityRefInfo> refEntry : metadata.getEntityRefs().entrySet()) {
-                TypeInfo typeInfo = refEntry.getValue().getTypeInfo();
-
-                JsonObject ref = new JsonObject()
-                        .putString("name", refEntry.getKey());
-
-                if (typeInfo.getTypeArguments().length == 0) {
-                    ref.putString("type", "EntityRef");
-                } else {
-                    ref.putString("type", typeInfo.getRawType().getName())
-                            .putArray("typeArgs", new JsonArray().addString("EntityRef"));
-                }
-
-                fields.addObject(ref);
-            }
-
-            schemas.putObject(name, schema);
+            schemas.putObject(type, schema);
         }
 
         return schemas;
+    }
+
+    private JsonObject buildSchema(Map.Entry<String, EntityMetadata> entry) {
+        EntityMetadata metadata = entry.getValue();
+
+        JsonObject schema = new JsonObject();
+
+        schema.putArray("sys_fields", new JsonArray()
+                .addObject(new JsonObject()
+                        .putString("name", "id")
+                        .putString("type", UUID.class.getName()))
+                .addObject(new JsonObject()
+                        .putString("name", "version")
+                        .putString("type", Integer.class.getName()))
+                .addObject(new JsonObject()
+                        .putString("name", "acl")
+                        .putString("type", Set.class.getName())
+                        .putArray("typeArgs", new JsonArray().addString(UUID.class.getName())))
+                .addObject(new JsonObject()
+                        .putString("name", "type")
+                        .putString("type", String.class.getName()))
+                .addObject(new JsonObject()
+                        .putString("name", "update_date")
+                        .putString("type", Date.class.getName()))
+        );
+
+        JsonArray fields = new JsonArray();
+        schema.putArray("fields", fields);
+
+        for (Map.Entry<String, TypeInfo> field : metadata.getFields().entrySet()) {
+            TypeInfo typeInfo = field.getValue();
+
+            JsonObject type = new JsonObject()
+                    .putString("name", field.getKey())
+                    .putString("type", typeInfo.getRawType().getName());
+
+            if (typeInfo.getTypeArguments() != null && typeInfo.getTypeArguments().length > 0) {
+                JsonArray typeArgs = new JsonArray();
+                for (Type t : typeInfo.getTypeArguments()) {
+                    if (t instanceof Class<?>) {
+                        Class<?> clazz = (Class<?>) t;
+                        typeArgs.addString(clazz.getName());
+                    } else {
+                        throw new IllegalArgumentException("Unsupported type argument: " + t.toString());
+                    }
+                }
+                type.putArray("typeArgs", typeArgs);
+            }
+
+            fields.addObject(type);
+        }
+
+        for (Map.Entry<String, EntityRefMember> refEntry : metadata.getEntityRefs().entrySet()) {
+            TypeInfo typeInfo = refEntry.getValue().getTypeInfo();
+
+            JsonObject ref = new JsonObject()
+                    .putString("name", refEntry.getKey());
+
+            if (typeInfo.getTypeArguments().length == 0) {
+                ref.putString("type", "EntityRef");
+            } else {
+                ref.putString("type", typeInfo.getRawType().getName())
+                        .putArray("typeArgs", new JsonArray().addString("EntityRef"));
+            }
+
+            fields.addObject(ref);
+        }
+
+        return schema;
     }
 
     protected JsonElement getEntityRef(Object refObj, List<PersistentMap> related) {
@@ -236,10 +252,10 @@ public class DefaultMessageBuilder implements MessageBuilder {
             related.add(refPersistentMap);
 
             return new JsonObject()
-                    .putString("type", "ref")
                     .putString("id", refPersistentMap.getSysFields().getId())
                     .putString("table", refMetadata.getTable())
-                    .putString("schema", refMetadata.getSchema());
+                    .putString("schema", refMetadata.getSchema())
+                    .putString("type", "EntityRef");
 
         } else {
             throw new IllegalArgumentException("EntityRef class " + refObj.getClass().getName() + " does not implement PersistentMap.");

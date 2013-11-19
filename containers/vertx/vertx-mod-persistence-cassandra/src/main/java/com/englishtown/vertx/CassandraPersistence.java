@@ -117,14 +117,14 @@ public class CassandraPersistence extends BusModBase implements Handler<Message<
 
         final JsonObject body = message.body();
 
-        final List<EntityRef> keys = getKeys(body);
-        if (keys == null) {
+        final List<EntityRef> refs = getEntityRefs(body);
+        if (refs == null) {
             return;
         }
 
         final LoadResults results = new LoadResults();
 
-        for (final EntityRef ref : keys) {
+        for (final EntityRef ref : refs) {
             persistor.load(ref, results, new LoadCallback() {
                 @Override
                 public void onSuccess(EntityRef ref, Row row) {
@@ -141,18 +141,18 @@ public class CassandraPersistence extends BusModBase implements Handler<Message<
 
     }
 
-    public List<EntityRef> getKeys(JsonObject body) {
+    public List<EntityRef> getEntityRefs(JsonObject body) {
 
-        final JsonArray keys = body.getArray("keys");
+        final JsonArray refs = body.getArray("refs");
 
-        if (keys == null || keys.size() == 0) {
-            throw new IllegalArgumentException("keys json array is required");
+        if (refs == null || refs.size() == 0) {
+            throw new IllegalArgumentException("refs json array is required");
         }
 
-        List<EntityRef> list = new ArrayList<>(keys.size());
+        List<EntityRef> list = new ArrayList<>(refs.size());
 
-        for (int i = 0; i < keys.size(); i++) {
-            JsonObject json = keys.get(i);
+        for (int i = 0; i < refs.size(); i++) {
+            JsonObject json = refs.get(i);
 
             String idStr = json.getString("id");
             if (idStr == null) {

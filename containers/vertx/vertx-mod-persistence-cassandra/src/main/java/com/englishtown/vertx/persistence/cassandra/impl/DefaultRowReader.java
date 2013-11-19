@@ -211,8 +211,8 @@ public class DefaultRowReader implements RowReader {
         return new JsonObject()
                 .putString("id", ref.getId().toString())
                 .putString("table", ref.getTable())
-                .putString("schema", ref.getKeyspace()
-                );
+                .putString("schema", ref.getKeyspace())
+                .putString("type", "EntityRef");
     }
 
 }

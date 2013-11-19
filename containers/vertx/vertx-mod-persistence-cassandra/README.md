@@ -10,11 +10,12 @@ The load operation expects a JSON message with the following structure:
 ```json
 {
     "action": "load",
-    "keys": [
+    "refs": [
         {
             "id": "UUID",
             "schema": "keyspace_name",
-            "table": "table_name"
+            "table": "table_name",
+            "type": "EntityRef"
         }
     ]
 }

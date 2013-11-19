@@ -52,7 +52,7 @@ public interface SysFields {
     /**
      * The object type represented by the persistent map
      *
-     * @return the data map object type
+     * @return the persistent map object type
      */
     String getType();
 

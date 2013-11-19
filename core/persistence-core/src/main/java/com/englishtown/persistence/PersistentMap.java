@@ -3,7 +3,7 @@ package com.englishtown.persistence;
 import java.util.Map;
 
 /**
- * Object data map
+ * Persistable object map
  */
 public interface PersistentMap {
 

@@ -157,11 +157,12 @@ public class BasicIntegrationTest extends TestVerticle {
                 // Create load message
                 JsonObject message = new JsonObject()
                         .putString("action", "load")
-                        .putArray("keys", new JsonArray()
+                        .putArray("refs", new JsonArray()
                                 .addObject(new JsonObject()
                                         .putString("id", member_id.toString())
                                         .putString("table", memberTable)
-                                        .putString("schema", keyspace)));
+                                        .putString("schema", keyspace)
+                                        .putString("type", "EntityRef")));
 
                 eb.send(CassandraPersistence.DEFAULT_ADDRESS, message, new Handler<Message<JsonObject>>() {
                     @Override

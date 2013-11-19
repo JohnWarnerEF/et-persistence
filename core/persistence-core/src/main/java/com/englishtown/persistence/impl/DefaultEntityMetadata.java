@@ -2,6 +2,7 @@ package com.englishtown.persistence.impl;
 
 import com.englishtown.persistence.EntityMetadata;
 import com.englishtown.persistence.EntityRefInfo;
+import com.englishtown.persistence.EntityRefMember;
 import com.englishtown.persistence.TypeInfo;
 
 import java.util.HashMap;
@@ -17,7 +18,7 @@ public class DefaultEntityMetadata implements EntityMetadata {
     private String schema;
 
     private Map<String, TypeInfo> schemaMap = new HashMap<>();
-    private Map<String, EntityRefInfo> entityRefs = new HashMap<>();
+    private Map<String, EntityRefMember> entityRefs = new HashMap<>();
 
     @Override
     public String getType() {
@@ -58,7 +59,7 @@ public class DefaultEntityMetadata implements EntityMetadata {
     }
 
     @Override
-    public Map<String, EntityRefInfo> getEntityRefs() {
+    public Map<String, EntityRefMember> getEntityRefs() {
         return entityRefs;
     }
 }

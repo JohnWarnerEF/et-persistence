@@ -141,14 +141,15 @@ public class CassandraPersistenceTest {
     @Test
     public void testHandle_Load() throws Exception {
 
-        JsonArray keys = new JsonArray().addObject(new JsonObject()
+        JsonArray refs = new JsonArray().addObject(new JsonObject()
                 .putString("id", UUID.randomUUID().toString())
                 .putString("schema", "keyspaceA")
                 .putString("table", "tableA")
+                .putString("type", "EntityRef")
         );
 
         body.putString("action", "load")
-                .putArray("keys", keys);
+                .putArray("refs", refs);
 
         cassandraPersistence.start();
         cassandraPersistence.handle(message);

@@ -3,6 +3,7 @@ package com.englishtown.vertx.persistence.impl;
 import com.englishtown.persistence.*;
 import com.englishtown.persistence.impl.DefaultEntityMetadataService;
 import com.englishtown.vertx.persistence.Member;
+import com.englishtown.vertx.persistence.SchemaCache;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,8 @@ public class DefaultMessageBuilderTest {
     EntityMetadataService metadataService;
     @Mock
     IDGenerator idGenerator;
+    @Mock
+    SchemaCache schemaCache;
 
     @Before
     public void setUp() {
@@ -41,7 +44,7 @@ public class DefaultMessageBuilderTest {
         when(metadataService.get(any(Class.class))).thenReturn(mock(EntityMetadata.class));
         when(idGenerator.createID()).thenReturn("new id");
 
-        builder = new DefaultMessageBuilder(metadataService, idGenerator);
+        builder = new DefaultMessageBuilder(metadataService, idGenerator, schemaCache);
 
     }
 
@@ -55,9 +58,9 @@ public class DefaultMessageBuilderTest {
 
         assertNotNull(message);
         assertEquals("load", message.getString("action"));
-        JsonArray keyArray = message.getArray("keys");
-        assertNotNull(keyArray);
-        assertEquals(0, keyArray.size());
+        JsonArray refArray = message.getArray("refs");
+        assertNotNull(refArray);
+        assertEquals(0, refArray.size());
 
     }
 
@@ -71,9 +74,9 @@ public class DefaultMessageBuilderTest {
 
         assertNotNull(message);
         assertEquals("load", message.getString("action"));
-        JsonArray keyArray = message.getArray("keys");
-        assertNotNull(keyArray);
-        assertEquals(0, keyArray.size());
+        JsonArray refArray = message.getArray("refs");
+        assertNotNull(refArray);
+        assertEquals(0, refArray.size());
 
     }
 
@@ -87,9 +90,9 @@ public class DefaultMessageBuilderTest {
 
         assertNotNull(message);
         assertEquals("load", message.getString("action"));
-        JsonArray keyArray = message.getArray("keys");
-        assertNotNull(keyArray);
-        assertEquals(2, keyArray.size());
+        JsonArray refArray = message.getArray("refs");
+        assertNotNull(refArray);
+        assertEquals(2, refArray.size());
 
     }
 
@@ -138,7 +141,7 @@ public class DefaultMessageBuilderTest {
     @Test
     public void testBuildStoreMessage_Success() throws Exception {
 
-        builder = new DefaultMessageBuilder(new DefaultEntityMetadataService(), idGenerator);
+        builder = new DefaultMessageBuilder(new DefaultEntityMetadataService(), idGenerator, schemaCache);
 
         List<PersistentMap> entities = new ArrayList<>();
         JsonObject message;

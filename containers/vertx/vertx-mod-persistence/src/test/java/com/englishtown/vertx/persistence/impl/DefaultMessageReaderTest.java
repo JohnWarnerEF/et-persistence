@@ -2,7 +2,7 @@ package com.englishtown.vertx.persistence.impl;
 
 import com.englishtown.persistence.*;
 import com.englishtown.persistence.impl.DefaultLoadResult;
-import com.englishtown.persistence.impl.DefaultPersistentMap;
+import com.englishtown.persistence.impl.DefaultLoadedPersistentMap;
 import com.englishtown.persistence.impl.DefaultStoreResult;
 import com.englishtown.promises.Resolver;
 import com.englishtown.promises.Value;
@@ -18,15 +18,12 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import javax.inject.Provider;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static org.vertx.testtools.VertxAssert.assertEquals;
 import static org.vertx.testtools.VertxAssert.assertFalse;
 
 /**
@@ -40,7 +37,7 @@ public class DefaultMessageReaderTest {
     JsonObject body = new JsonObject();
 
     @Mock
-    PersistentMapFactory mapFactory;
+    LoadedPersistentMapFactory mapFactory;
     @Mock
     Message<JsonObject> message;
     @Mock
@@ -51,15 +48,17 @@ public class DefaultMessageReaderTest {
     Provider<LoadResult> loadResultProvider;
     @Mock
     Resolver<StoreResult, Void> resolver;
+    @Mock
+    EntityMetadataService metadataService;
     @Captor
     ArgumentCaptor<StoreResult> storeResultCaptor;
 
     @Before
     public void setUp() {
-        when(mapFactory.create(any(Map.class))).thenReturn(new DefaultPersistentMap());
+        when(mapFactory.create(any(Map.class), any(Map.class))).thenReturn(new DefaultLoadedPersistentMap());
         when(message.body()).thenReturn(body);
 
-        reader = new DefaultMessageReader(mapFactory, storeResultProvider, loadResultProvider);
+        reader = new DefaultMessageReader(mapFactory, storeResultProvider, loadResultProvider, metadataService);
     }
 
     @Test
@@ -110,6 +109,117 @@ public class DefaultMessageReaderTest {
 
         reader.readLoadReply(message, null, loadResolver);
         verify(loadResolver).resolve(any(LoadResult.class));
+
+    }
+
+    @Test
+    public void testReadMissing() throws Exception {
+
+        String id = "test.id";
+        String table = "test.table";
+        String schema = "test.schema";
+
+        JsonObject entityRef = new JsonObject()
+                .putString("id", id)
+                .putString("table", table)
+                .putString("schema", schema);
+        JsonArray missing = new JsonArray().addObject(entityRef);
+        List<EntityKey> keys = new ArrayList<>();
+        List<EntityKey> missingKeys = new ArrayList<>();
+        LoadResult result = mock(LoadResult.class);
+        when(result.getFailed()).thenReturn(missingKeys);
+
+        EntityKey key = mock(EntityKey.class);
+        when(key.getId()).thenReturn(id);
+        keys.add(key);
+
+        EntityMetadata metadata = mock(EntityMetadata.class);
+        when(metadata.getTable()).thenReturn(table);
+        when(metadata.getSchema()).thenReturn(schema);
+        when(metadataService.get(any(Class.class))).thenReturn(metadata);
+
+        reader.readMissing(missing, keys, result);
+        assertEquals(1, missingKeys.size());
+        assertEquals(key, missingKeys.get(0));
+
+    }
+
+    @Test
+    public void testReadMissing_Invalid() throws Exception {
+
+        JsonObject entityRef = new JsonObject();
+        JsonArray missing = new JsonArray().addObject(entityRef);
+        List<EntityKey> keys = new ArrayList<>();
+        LoadResult result = mock(LoadResult.class);
+
+        try {
+            reader.readMissing(missing, keys, result);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // Expected
+        }
+
+        entityRef.putString("id", "test.id");
+
+        try {
+            reader.readMissing(missing, keys, result);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // Expected
+        }
+
+        entityRef.putString("table", "test.table");
+
+        try {
+            reader.readMissing(missing, keys, result);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // Expected
+        }
+
+        entityRef.putString("schema", "test.schema");
+
+        reader.readMissing(missing, keys, result);
+        verifyZeroInteractions(result);
+
+    }
+
+    @Test
+    public void testRemoveEntityRefs() throws Exception {
+
+        String id = "test.id";
+        String table = "test.table";
+        String schema = "test.schema";
+
+        JsonObject entityRef = new JsonObject()
+                .putString("id", id)
+                .putString("table", table)
+                .putString("schema", schema)
+                .putString("type", "EntityRef");
+
+        JsonObject fields = new JsonObject()
+                .putString("str", "value")
+                .putNumber("num", 30)
+                .putBoolean("bool", true)
+                .putArray("arr1", new JsonArray())
+                .putArray("arr2", new JsonArray().addString("a").addString("b"))
+                .putArray("arr3", new JsonArray().addObject(entityRef).addObject(entityRef))
+                .putObject("obj1", new JsonObject().putString("prop1", "value"))
+                .putObject("obj2", entityRef);
+
+        Map<String, EntityRefInfo> entityRefs = new HashMap<>();
+        Map<String, List<EntityRefInfo>> entityRefLists = new HashMap<>();
+
+        assertEquals(8, fields.getFieldNames().size());
+        reader.removeEntityRefs(fields, entityRefs, entityRefLists);
+
+        assertEquals(6, fields.getFieldNames().size());
+        assertNull(fields.getObject("obj2"));
+        assertNull(fields.getObject("arr3"));
+
+        assertEquals(1, entityRefs.size());
+        assertEquals(1, entityRefLists.size());
+        assertEquals(2, entityRefLists.get("arr3").size());
 
     }
 

@@ -11,6 +11,7 @@ import com.englishtown.vertx.persistence.MessageReader;
 import com.englishtown.vertx.persistence.impl.DefaultMessageBuilder;
 import com.englishtown.vertx.persistence.impl.DefaultMessageReader;
 import com.englishtown.vertx.persistence.impl.DefaultPersistenceService;
+import com.englishtown.vertx.persistence.impl.DefaultSchemaCache;
 import org.junit.Test;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Future;
@@ -33,7 +34,7 @@ public class CassandraIntegrationTest extends TestVerticle {
 
     String address = "et.persistence.cassandra";
     DefaultPersistenceService service;
-    PersistentMapFactory dataMapFactory;
+    LoadedPersistentMapFactory dataMapFactory;
     MessageBuilder messageBuilder;
     MessageReader messageReader;
 
@@ -105,9 +106,10 @@ public class CassandraIntegrationTest extends TestVerticle {
         Provider<LoadResult> loadResultProvider = mock(Provider.class);
         when(loadResultProvider.get()).thenReturn(new DefaultLoadResult());
 
-        dataMapFactory = new DefaultPersistentMapFactory();
-        messageBuilder = new DefaultMessageBuilder(new DefaultEntityMetadataService(), new DefaultIDGenerator());
-        messageReader = new DefaultMessageReader(dataMapFactory, storeResultProvider, loadResultProvider);
+        EntityMetadataService metadataService = new DefaultEntityMetadataService();
+        dataMapFactory = new DefaultLoadedPersistentMapFactory();
+        messageBuilder = new DefaultMessageBuilder(metadataService, new DefaultIDGenerator(), new DefaultSchemaCache());
+        messageReader = new DefaultMessageReader(dataMapFactory, storeResultProvider, loadResultProvider, metadataService);
 
         service = new DefaultPersistenceService(vertx, container, messageBuilder, messageReader);
 

@@ -1,6 +1,6 @@
 package com.englishtown.persistence.impl;
 
-import com.englishtown.persistence.EntityRefInfo;
+import com.englishtown.persistence.EntityRefMember;
 import com.englishtown.persistence.TypeInfo;
 import org.junit.Test;
 
@@ -46,8 +46,8 @@ public class DefaultEntityMetadataTest {
 
     @Test
     public void testGetEntityRefs() throws Exception {
-        Map<String, EntityRefInfo> entityRefs = metadata.getEntityRefs();
+        Map<String, EntityRefMember> entityRefs = metadata.getEntityRefs();
         assertNotNull(entityRefs);
-        assertEquals(entityRefs, metadata.getFields());
+        assertEquals(entityRefs, metadata.getEntityRefs());
     }
 }
