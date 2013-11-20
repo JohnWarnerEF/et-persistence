@@ -155,29 +155,74 @@ public class BasicIntegrationTest extends TestVerticle {
                     return;
                 }
 
-                // Create load message
-                JsonObject message = new JsonObject()
-                        .putString("action", "load")
-                        .putArray("refs", new JsonArray()
-                                .addObject(new JsonObject()
-                                        .putString("id", member_id.toString())
-                                        .putString("table", memberTable)
-                                        .putString("schema", keyspace)
-                                        .putString("type", "EntityRef")));
+                testLoad();
+            }
+        });
 
-                eb.send(CassandraPersistence.DEFAULT_ADDRESS, message, new Handler<Message<JsonObject>>() {
-                    @Override
-                    public void handle(Message<JsonObject> reply) {
-                        assertEquals("ok", reply.body().getString("status"));
-                        JsonArray results = reply.body().getArray("entities");
-                        assertNotNull(results);
-                        assertEquals(5, results.size());
-                        JsonArray missing = reply.body().getArray("missing");
-                        assertNotNull(missing);
-                        assertEquals(0, missing.size());
-                        testComplete();
-                    }
-                });
+    }
+
+    private void testLoad() {
+
+        final EventBus eb = vertx.eventBus();
+
+        // Create load message
+        JsonObject message = new JsonObject()
+                .putString("action", "load")
+                .putArray("refs", new JsonArray()
+                        .addObject(new JsonObject()
+                                .putString("id", member_id.toString())
+                                .putString("schema", keyspace)
+                                .putString("table", memberTable)
+                                .putString("type", "EntityRef")));
+
+        eb.send(CassandraPersistence.DEFAULT_ADDRESS, message, new Handler<Message<JsonObject>>() {
+            @Override
+            public void handle(Message<JsonObject> reply) {
+                assertEquals("ok", reply.body().getString("status"));
+                JsonArray results = reply.body().getArray("entities");
+                assertNotNull(results);
+                assertEquals(5, results.size());
+                JsonArray missing = reply.body().getArray("missing");
+                assertNotNull(missing);
+                assertEquals(0, missing.size());
+
+                testLoadMissing();
+            }
+        });
+
+    }
+
+    private void testLoadMissing() {
+
+        final EventBus eb = vertx.eventBus();
+
+        // Create load message
+        JsonObject message = new JsonObject()
+                .putString("action", "load")
+                .putArray("refs", new JsonArray()
+                        .addObject(new JsonObject()
+                                .putString("id", member_id.toString())
+                                .putString("schema", keyspace)
+                                .putString("table", memberTable)
+                                .putString("type", "EntityRef"))
+                        .addObject(new JsonObject()
+                                .putString("id", UUID.randomUUID().toString())
+                                .putString("schema", keyspace)
+                                .putString("table", memberTable)
+                                .putString("type", "EntityRef"))
+                );
+
+        eb.send(CassandraPersistence.DEFAULT_ADDRESS, message, new Handler<Message<JsonObject>>() {
+            @Override
+            public void handle(Message<JsonObject> reply) {
+                assertEquals("ok", reply.body().getString("status"));
+                JsonArray results = reply.body().getArray("entities");
+                assertNotNull(results);
+                assertEquals(5, results.size());
+                JsonArray missing = reply.body().getArray("missing");
+                assertNotNull(missing);
+                assertEquals(1, missing.size());
+                testComplete();
             }
         });
 
@@ -200,21 +245,21 @@ public class BasicIntegrationTest extends TestVerticle {
                         .putString("username", "test.user.name")
                         .putObject("profile", new JsonObject()
                                 .putString("id", profile_id.toString())
-                                .putString("table", profileTable)
-                                .putString("schema", keyspace))
+                                .putString("schema", keyspace)
+                                .putString("table", profileTable))
                         .putArray("addresses", new JsonArray()
                                 .addObject(new JsonObject()
                                         .putString("id", address_id1.toString())
-                                        .putString("table", addressTable)
-                                        .putString("schema", keyspace))
+                                        .putString("schema", keyspace)
+                                        .putString("table", addressTable))
                                 .addObject(new JsonObject()
                                         .putString("id", address_id2.toString())
-                                        .putString("table", addressTable)
-                                        .putString("schema", keyspace))
+                                        .putString("schema", keyspace)
+                                        .putString("table", addressTable))
                                 .addObject(new JsonObject()
                                         .putString("id", address_id3.toString())
-                                        .putString("table", addressTable)
-                                        .putString("schema", keyspace))
+                                        .putString("schema", keyspace)
+                                        .putString("table", addressTable))
                         )
                 );
 

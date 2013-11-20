@@ -2,7 +2,6 @@ package com.englishtown.persistence.impl;
 
 import com.englishtown.persistence.EntityKey;
 import com.englishtown.persistence.LoadedPersistentMap;
-import com.englishtown.persistence.PersistentMap;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -50,6 +50,7 @@ public interface EntityMetadata {
 
     /**
      * A map of entity ref names and entity ref info
+     *
      * @return
      */
     Map<String, EntityRefMember> getEntityRefs();

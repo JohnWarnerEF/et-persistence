@@ -1,7 +1,6 @@
 package com.englishtown.persistence.impl;
 
 import com.englishtown.persistence.EntityMetadata;
-import com.englishtown.persistence.EntityRefInfo;
 import com.englishtown.persistence.EntityRefMember;
 import com.englishtown.persistence.TypeInfo;
 

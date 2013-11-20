@@ -2,6 +2,7 @@ package com.englishtown.vertx.persistence.impl;
 
 import com.englishtown.persistence.*;
 import com.englishtown.persistence.acl.AccessControlList;
+import com.englishtown.persistence.impl.DefaultEntityRefInfo;
 import com.englishtown.promises.Resolver;
 import com.englishtown.promises.Value;
 import com.englishtown.vertx.persistence.MessageReader;
@@ -22,6 +23,16 @@ public class DefaultMessageReader implements MessageReader {
     private final Provider<StoreResult> storeResultProvider;
     private final Provider<LoadResult> loadResultProvider;
     private final EntityMetadataService metadataService;
+
+    protected static class LoadedEntity {
+        public final LoadedPersistentMap map;
+        public final EntityRefInfo ref;
+
+        public LoadedEntity(LoadedPersistentMap map, EntityRefInfo ref) {
+            this.map = map;
+            this.ref = ref;
+        }
+    }
 
     @Inject
     public DefaultMessageReader(LoadedPersistentMapFactory mapFactory, Provider<StoreResult> storeResultProvider, Provider<LoadResult> loadResultProvider, EntityMetadataService metadataService) {
@@ -58,11 +69,18 @@ public class DefaultMessageReader implements MessageReader {
                 throw new IllegalArgumentException("No entities json array");
             }
 
+            List<EntityRefInfo> allEntityRefs = new ArrayList<>();
+            List<LoadedEntity> allEntities = new ArrayList<>();
+
             for (int i = 0; i < entities.size(); i++) {
-                LoadedPersistentMap pm = readEntity(entities.<JsonObject>get(i));
-                results.getSucceeded().add(pm);
+                LoadedEntity entity = readEntity(entities.<JsonObject>get(i), allEntityRefs);
+                if (entity != null) {
+                    allEntities.add(entity);
+                    results.getSucceeded().add(entity.map);
+                }
             }
 
+            setRelatedEntityRefs(allEntities);
             readMissing(body.getArray("missing"), keys, results);
 
             resolver.resolve(results);
@@ -73,7 +91,36 @@ public class DefaultMessageReader implements MessageReader {
 
     }
 
-    protected LoadedPersistentMap readEntity(JsonObject entity) {
+    protected void setRelatedEntityRefs(List<LoadedEntity> allEntities) {
+
+        // Populate related entity refs
+        for (LoadedEntity entity : allEntities) {
+            // Individual entity refs
+            for (EntityRefInfo ref : entity.map.getEntityRefs().values()) {
+                for (LoadedEntity related : allEntities) {
+                    if (related.ref.equals(ref)) {
+                        ref.setPersistentMap(related.map);
+                        break;
+                    }
+                }
+            }
+
+            // Collection entity refs
+            for (Collection<EntityRefInfo> refs : entity.map.getEntityRefCollections().values()) {
+                for (EntityRefInfo ref : refs) {
+                    for (LoadedEntity related : allEntities) {
+                        if (related.ref.equals(ref)) {
+                            ref.setPersistentMap(related.map);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    protected LoadedEntity readEntity(JsonObject entity, List<EntityRefInfo> allEntityRefs) {
 
         JsonObject fields = entity.getObject("fields");
         JsonObject sysFields = entity.getObject("sys_fields");
@@ -84,10 +131,10 @@ public class DefaultMessageReader implements MessageReader {
         }
 
         Map<String, EntityRefInfo> entityRefs = new HashMap<>();
-        Map<String, List<EntityRefInfo>> entityRefLists = new HashMap<>();
-        removeEntityRefs(fields, entityRefs, entityRefLists);
-        // TODO: Need to pass entityRefLists too
-        LoadedPersistentMap pm = mapFactory.create(fields.toMap(), entityRefs);
+        Map<String, Collection<EntityRefInfo>> entityRefCollections = new HashMap<>();
+        removeEntityRefs(fields, entityRefs, entityRefCollections, allEntityRefs);
+
+        LoadedPersistentMap pm = mapFactory.create(fields.toMap(), entityRefs, entityRefCollections);
 
         pm.getSysFields()
                 .setId(sysFields.getString("id"))
@@ -103,7 +150,13 @@ public class DefaultMessageReader implements MessageReader {
             }
         }
 
-        return pm;
+        EntityRefInfo ref = new DefaultEntityRefInfo(
+                sysFields.getString("id"),
+                entity.getString("table"),
+                entity.getString("schema"));
+
+        ref.setPersistentMap(pm);
+        return new LoadedEntity(pm, ref);
     }
 
     protected void readMissing(JsonArray missing, List<EntityKey> keys, LoadResult result) {
@@ -134,7 +187,8 @@ public class DefaultMessageReader implements MessageReader {
     protected void removeEntityRefs(
             JsonObject fields,
             Map<String, EntityRefInfo> entityRefs,
-            Map<String, List<EntityRefInfo>> entityRefLists) {
+            Map<String, Collection<EntityRefInfo>> entityRefLists,
+            List<EntityRefInfo> allEntityRefs) {
 
         Iterator<String> iterator = fields.getFieldNames().iterator();
 
@@ -145,7 +199,9 @@ public class DefaultMessageReader implements MessageReader {
             if (val instanceof JsonObject) {
                 final JsonObject json = (JsonObject) val;
                 if ("EntityRef".equalsIgnoreCase(json.getString("type"))) {
-                    entityRefs.put(name, createEntityRef(json));
+                    EntityRefInfo ref = createEntityRef(json);
+                    allEntityRefs.add(ref);
+                    entityRefs.put(name, ref);
                     // Remove entity ref from fields
                     iterator.remove();
                 }
@@ -165,7 +221,9 @@ public class DefaultMessageReader implements MessageReader {
 
                 List<EntityRefInfo> list = new ArrayList<>();
                 for (int i = 0; i < json.size(); i++) {
-                    list.add(createEntityRef(json.<JsonObject>get(i)));
+                    EntityRefInfo ref = createEntityRef(json.<JsonObject>get(i));
+                    allEntityRefs.add(ref);
+                    list.add(ref);
                 }
                 entityRefLists.put(name, list);
                 // Remove entity ref array from fields
@@ -191,22 +249,7 @@ public class DefaultMessageReader implements MessageReader {
             throw new IllegalArgumentException("EntityRef must have a schema field: " + json.encode());
         }
 
-        return new EntityRefInfo() {
-            @Override
-            public String getId() {
-                return id;
-            }
-
-            @Override
-            public String getTable() {
-                return table;
-            }
-
-            @Override
-            public String getSchema() {
-                return schema;
-            }
-        };
+        return new DefaultEntityRefInfo(id, table, schema);
     }
 
     /**

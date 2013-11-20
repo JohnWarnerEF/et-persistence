@@ -69,6 +69,12 @@
                 <version>${vertx.when.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>com.englishtown</groupId>
+                <artifactId>vertx-mod-hk2</artifactId>
+                <version>${vertx.mod.hk2.version}</version>
+                <scope>provided</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

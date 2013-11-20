@@ -221,8 +221,8 @@ public class DefaultInsertBuilderTest {
         String fieldName = "prop1";
         Object value = new JsonObject()
                 .putString("id", UUID.randomUUID().toString())
-                .putString("table", "table1")
-                .putString("schema", "keyspace1");
+                .putString("schema", "keyspace1")
+                .putString("table", "table1");
 
         when(columnMetadata.getName()).thenReturn(fieldName);
         DataType dataType = DataType.custom(EntityRefType.class.getName());
@@ -256,8 +256,8 @@ public class DefaultInsertBuilderTest {
         String fieldName = "prop1";
         Object value = new JsonArray().addObject(new JsonObject()
                 .putString("id", UUID.randomUUID().toString())
-                .putString("table", "table1")
                 .putString("schema", "keyspace1")
+                .putString("table", "table1")
         );
 
         when(columnMetadata.getName()).thenReturn(fieldName);
@@ -312,8 +312,8 @@ public class DefaultInsertBuilderTest {
 
         JsonObject json = new JsonObject()
                 .putString("id", UUID.randomUUID().toString())
-                .putString("table", "tableA")
-                .putString("schema", "keyspaceA");
+                .putString("schema", "keyspaceA")
+                .putString("table", "tableA");
 
         builder.getEntityRef(json);
         verify(serializer).serialize(any(EntityRef.class));

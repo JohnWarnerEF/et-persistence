@@ -11,6 +11,10 @@ public interface EntityRefInfo {
 
     String getSchema();
 
-    // TODO: Add getPersistentMap() and isLoaded()?
+    PersistentMap getPersistentMap();
+
+    EntityRefInfo setPersistentMap(PersistentMap map);
+
+    boolean isLoaded();
 
 }

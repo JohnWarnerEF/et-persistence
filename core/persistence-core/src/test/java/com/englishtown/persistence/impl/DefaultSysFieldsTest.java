@@ -3,8 +3,6 @@ package com.englishtown.persistence.impl;
 import com.englishtown.persistence.acl.AccessControlList;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;

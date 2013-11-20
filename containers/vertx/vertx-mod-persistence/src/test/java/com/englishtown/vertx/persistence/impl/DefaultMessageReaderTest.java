@@ -55,7 +55,7 @@ public class DefaultMessageReaderTest {
 
     @Before
     public void setUp() {
-        when(mapFactory.create(any(Map.class), any(Map.class))).thenReturn(new DefaultLoadedPersistentMap());
+        when(mapFactory.create(any(Map.class), any(Map.class), any(Map.class))).thenReturn(new DefaultLoadedPersistentMap());
         when(message.body()).thenReturn(body);
 
         reader = new DefaultMessageReader(mapFactory, storeResultProvider, loadResultProvider, metadataService);
@@ -121,8 +121,8 @@ public class DefaultMessageReaderTest {
 
         JsonObject entityRef = new JsonObject()
                 .putString("id", id)
-                .putString("table", table)
-                .putString("schema", schema);
+                .putString("schema", schema)
+                .putString("table", table);
         JsonArray missing = new JsonArray().addObject(entityRef);
         List<EntityKey> keys = new ArrayList<>();
         List<EntityKey> missingKeys = new ArrayList<>();
@@ -193,8 +193,8 @@ public class DefaultMessageReaderTest {
 
         JsonObject entityRef = new JsonObject()
                 .putString("id", id)
-                .putString("table", table)
                 .putString("schema", schema)
+                .putString("table", table)
                 .putString("type", "EntityRef");
 
         JsonObject fields = new JsonObject()
@@ -208,18 +208,19 @@ public class DefaultMessageReaderTest {
                 .putObject("obj2", entityRef);
 
         Map<String, EntityRefInfo> entityRefs = new HashMap<>();
-        Map<String, List<EntityRefInfo>> entityRefLists = new HashMap<>();
+        Map<String, Collection<EntityRefInfo>> entityRefCollections = new HashMap<>();
+        List<EntityRefInfo> allEntityRefs = new ArrayList<>();
 
         assertEquals(8, fields.getFieldNames().size());
-        reader.removeEntityRefs(fields, entityRefs, entityRefLists);
+        reader.removeEntityRefs(fields, entityRefs, entityRefCollections, allEntityRefs);
 
         assertEquals(6, fields.getFieldNames().size());
         assertNull(fields.getObject("obj2"));
         assertNull(fields.getObject("arr3"));
 
         assertEquals(1, entityRefs.size());
-        assertEquals(1, entityRefLists.size());
-        assertEquals(2, entityRefLists.get("arr3").size());
+        assertEquals(1, entityRefCollections.size());
+        assertEquals(2, entityRefCollections.get("arr3").size());
 
     }
 

@@ -34,15 +34,18 @@ public class DefaultRowReader implements RowReader {
      * Reads a Cassandra result set row and adds to the results
      *
      * @param row
+     * @param ref
      * @param results
      * @param callback
      */
     @Override
-    public void read(Row row, LoadResults results, LoadCallback callback) {
+    public void read(Row row, EntityRef ref, LoadResults results, LoadCallback callback) {
 
         JsonObject sysFields = new JsonObject();
         JsonObject fields = new JsonObject();
         JsonObject entity = new JsonObject()
+                .putString("schema", ref.getKeyspace())
+                .putString("table", ref.getTable())
                 .putObject(SchemaBuilder.JSON_FIELD_SYS_FIELDS, sysFields)
                 .putObject(SchemaBuilder.JSON_FIELD_FIELDS, fields);
         int index = 0;
@@ -210,8 +213,8 @@ public class DefaultRowReader implements RowReader {
 
         return new JsonObject()
                 .putString("id", ref.getId().toString())
-                .putString("table", ref.getTable())
                 .putString("schema", ref.getKeyspace())
+                .putString("table", ref.getTable())
                 .putString("type", "EntityRef");
     }
 

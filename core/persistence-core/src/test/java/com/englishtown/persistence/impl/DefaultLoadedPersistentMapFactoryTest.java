@@ -4,6 +4,7 @@ import com.englishtown.persistence.EntityRefInfo;
 import com.englishtown.persistence.LoadedPersistentMap;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +22,8 @@ public class DefaultLoadedPersistentMapFactoryTest {
 
         Map<String, Object> fields = new HashMap<>();
         Map<String, EntityRefInfo> entityRefs = new HashMap<>();
-        LoadedPersistentMap map = factory.create(fields, entityRefs);
+        Map<String, Collection<EntityRefInfo>> entityRefCollections = new HashMap<>();
+        LoadedPersistentMap map = factory.create(fields, entityRefs, entityRefCollections);
         assertEquals(fields, map.getMap());
         assertEquals(entityRefs, map.getEntityRefs());
 

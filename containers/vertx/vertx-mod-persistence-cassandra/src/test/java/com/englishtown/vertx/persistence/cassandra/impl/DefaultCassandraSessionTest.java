@@ -151,7 +151,7 @@ public class DefaultCassandraSessionTest {
         config.putObject("policies", new JsonObject()
                 .putObject("load_balancing", new JsonObject()
                         .putString("name", "com.englishtown.vertx.persistence.cassandra.impl.DefaultCassandraSessionTest$TestLoadBalancingPolicy")
-                        ));
+                ));
 
         cassandraSession.initPolicies(clusterBuilder, config);
         verify(clusterBuilder).withLoadBalancingPolicy(loadBalancingPolicyCaptor.capture());

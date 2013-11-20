@@ -21,7 +21,7 @@ The load operation expects a JSON message with the following structure:
 }
 ```
 
-* `keys` - a json array of key objects to be loaded.  A key consists of the following fields:
+* `refs` - a json array of entity ref objects to be loaded.  A key consists of the following fields:
     * `id` - the row primary key, must be a UUID
     * `schema` - the C* keyspace where the entity exists
     * `table` - the C* table where the entity exists
@@ -37,6 +37,8 @@ The reply json message has the following structure:
     "status": "ok",
     "entities": [
         {
+            "schema": "keyspace_name",
+            "table": "table_name",
             "sys_fields": {
                 "id": "UUID",
                 ...
@@ -59,6 +61,8 @@ The reply json message has the following structure:
 
 * `status` - `ok` or `error`
 * `entities` - a json array of the loaded entities.  An entity consists of:
+    * `schema` - the C* keyspace where the entity exists
+    * `table` - the C* table where the entity exists
     * `sys_fields` - a json object of key/value system fields
     * `fields' - a json object of key/value fields
 * `missing` - a json array of keys that could not be found in C*.  Hopefully empty.

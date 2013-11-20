@@ -23,6 +23,11 @@
             <artifactId>vertx-mod-when</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.englishtown</groupId>
+            <artifactId>vertx-mod-hk2</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <!--Test dependencies-->
         <dependency>

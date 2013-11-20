@@ -67,9 +67,12 @@ public class DefaultRowReaderTest {
         when(row.getColumnDefinitions()).thenReturn(columnDefinitions);
         when(columnDefinitions.iterator()).thenReturn(columns.iterator());
 
-        reader.read(row, results, callback);
+        EntityRef ref = mock(EntityRef.class);
+
+        reader.read(row, ref, results, callback);
         assertEquals(1, results.entities.size());
-        assertEquals(2, results.entities.<JsonObject>get(0).size());
+        JsonObject entity = results.entities.get(0);
+        assertEquals(4, entity.size());
     }
 
     @Test

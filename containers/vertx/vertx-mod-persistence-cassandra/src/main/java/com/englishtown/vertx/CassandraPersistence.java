@@ -182,11 +182,11 @@ public class CassandraPersistence extends BusModBase implements Handler<Message<
         if (row == null) {
             results.missing.addObject(new JsonObject()
                     .putString("id", ref.getId().toString())
-                    .putString("table", ref.getTable())
-                    .putString("schema", ref.getKeyspace()));
+                    .putString("schema", ref.getKeyspace())
+                    .putString("table", ref.getTable()));
 
         } else {
-            rowReader.read(row, results, new LoadCallback() {
+            rowReader.read(row, ref, results, new LoadCallback() {
                 @Override
                 public void onSuccess(EntityRef ref, Row row) {
                     handleResults(ref, row, results, message);

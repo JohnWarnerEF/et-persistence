@@ -45,8 +45,8 @@ public class DefaultMessageBuilder implements MessageBuilder {
                 EntityMetadata metadata = metadataService.get(key.getEntityClass());
                 refs.addObject(new JsonObject()
                         .putString("id", key.getId())
-                        .putString("table", metadata.getTable())
                         .putString("schema", metadata.getSchema())
+                        .putString("table", metadata.getTable())
                         .putString("type", "EntityRef")
                 );
             }
@@ -257,8 +257,8 @@ public class DefaultMessageBuilder implements MessageBuilder {
 
             return new JsonObject()
                     .putString("id", refPersistentMap.getSysFields().getId())
-                    .putString("table", refMetadata.getTable())
                     .putString("schema", refMetadata.getSchema())
+                    .putString("table", refMetadata.getTable())
                     .putString("type", "EntityRef");
 
         } else {

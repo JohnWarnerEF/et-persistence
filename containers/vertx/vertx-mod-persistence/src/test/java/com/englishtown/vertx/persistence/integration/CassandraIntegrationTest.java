@@ -21,10 +21,9 @@ import org.vertx.testtools.TestVerticle;
 
 import javax.inject.Provider;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.vertx.testtools.VertxAssert.*;
 
 /**
@@ -79,6 +78,23 @@ public class CassandraIntegrationTest extends TestVerticle {
                     @Override
                     public Promise<LoadResult, Void> run(LoadResult value) {
                         assertEquals(5, value.getSucceeded().size());
+
+                        int count = 1;
+
+                        for (LoadedPersistentMap map : value.getSucceeded()) {
+                            for (EntityRefInfo ref : map.getEntityRefs().values()) {
+                                assertTrue(ref.isLoaded());
+                                count++;
+                            }
+                            for (Collection<EntityRefInfo> refs : map.getEntityRefCollections().values()) {
+                                for (EntityRefInfo ref : refs) {
+                                    assertTrue(ref.isLoaded());
+                                    count++;
+                                }
+                            }
+                        }
+
+                        assertEquals(5, count);
                         testComplete();
                         return null;
                     }
