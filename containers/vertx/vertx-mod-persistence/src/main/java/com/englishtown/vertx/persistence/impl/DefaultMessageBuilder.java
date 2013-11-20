@@ -6,6 +6,7 @@ import com.englishtown.vertx.persistence.SchemaCache;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonElement;
 import org.vertx.java.core.json.JsonObject;
+import org.vertx.java.platform.Container;
 
 import javax.inject.Inject;
 import java.lang.reflect.Type;
@@ -19,12 +20,14 @@ public class DefaultMessageBuilder implements MessageBuilder {
     private final EntityMetadataService metadataService;
     private final IDGenerator idGenerator;
     private final SchemaCache schemaCache;
+    private final boolean includeSchemas;
 
     @Inject
-    public DefaultMessageBuilder(EntityMetadataService metadataService, IDGenerator idGenerator, SchemaCache schemaCache) {
+    public DefaultMessageBuilder(EntityMetadataService metadataService, IDGenerator idGenerator, SchemaCache schemaCache, Container container) {
         this.metadataService = metadataService;
         this.idGenerator = idGenerator;
         this.schemaCache = schemaCache;
+        this.includeSchemas = container.config().getBoolean("et.persistence.include_schemas", true);
     }
 
     /**
@@ -79,8 +82,9 @@ public class DefaultMessageBuilder implements MessageBuilder {
             }
         }
 
-        // TODO: Config flag to skip adding schemas to make messages smaller
-        message.putObject("schemas", buildSchemas(schemaMap));
+        if (includeSchemas) {
+            message.putObject("schemas", buildSchemas(schemaMap));
+        }
 
         return message;
 

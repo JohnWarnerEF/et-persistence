@@ -99,16 +99,22 @@ public class CassandraIntegrationTest extends TestVerticle {
 
         container.config().putString(DefaultPersistenceService.CONFIG_ADDRESS, address);
 
-        //noinspection unchecked
-        Provider<StoreResult> storeResultProvider = mock(Provider.class);
-        when(storeResultProvider.get()).thenReturn(new DefaultStoreResult());
-        //noinspection unchecked
-        Provider<LoadResult> loadResultProvider = mock(Provider.class);
-        when(loadResultProvider.get()).thenReturn(new DefaultLoadResult());
+        Provider<StoreResult> storeResultProvider = new Provider<StoreResult>() {
+            @Override
+            public StoreResult get() {
+                return new DefaultStoreResult();
+            }
+        };
+        Provider<LoadResult> loadResultProvider = new Provider<LoadResult>() {
+            @Override
+            public LoadResult get() {
+                return new DefaultLoadResult();
+            }
+        };
 
         EntityMetadataService metadataService = new DefaultEntityMetadataService();
         dataMapFactory = new DefaultLoadedPersistentMapFactory();
-        messageBuilder = new DefaultMessageBuilder(metadataService, new DefaultIDGenerator(), new DefaultSchemaCache());
+        messageBuilder = new DefaultMessageBuilder(metadataService, new DefaultIDGenerator(), new DefaultSchemaCache(), container);
         messageReader = new DefaultMessageReader(dataMapFactory, storeResultProvider, loadResultProvider, metadataService);
 
         service = new DefaultPersistenceService(vertx, container, messageBuilder, messageReader);

@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
+import org.vertx.java.platform.Container;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.when;
 public class DefaultMessageBuilderTest {
 
     DefaultMessageBuilder builder;
+    JsonObject config = new JsonObject();
 
     @Mock
     EntityMetadataService metadataService;
@@ -37,14 +39,17 @@ public class DefaultMessageBuilderTest {
     IDGenerator idGenerator;
     @Mock
     SchemaCache schemaCache;
+    @Mock
+    Container container;
 
     @Before
     public void setUp() {
 
         when(metadataService.get(any(Class.class))).thenReturn(mock(EntityMetadata.class));
         when(idGenerator.createID()).thenReturn("new id");
+        when(container.config()).thenReturn(config);
 
-        builder = new DefaultMessageBuilder(metadataService, idGenerator, schemaCache);
+        builder = new DefaultMessageBuilder(metadataService, idGenerator, schemaCache, container);
 
     }
 
@@ -141,7 +146,7 @@ public class DefaultMessageBuilderTest {
     @Test
     public void testBuildStoreMessage_Success() throws Exception {
 
-        builder = new DefaultMessageBuilder(new DefaultEntityMetadataService(), idGenerator, schemaCache);
+        builder = new DefaultMessageBuilder(new DefaultEntityMetadataService(), idGenerator, schemaCache, container);
 
         List<PersistentMap> entities = new ArrayList<>();
         JsonObject message;

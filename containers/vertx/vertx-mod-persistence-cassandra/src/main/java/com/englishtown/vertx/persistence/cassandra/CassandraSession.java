@@ -15,6 +15,10 @@ public interface CassandraSession extends AutoCloseable {
 
     void executeAsync(Statement statement, final FutureCallback<ResultSet> callback);
 
+    void executeAsync(String query, final FutureCallback<ResultSet> callback);
+
+    ResultSet execute(Statement statement);
+
     ResultSet execute(String query);
 
     Metadata getMetadata();

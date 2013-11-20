@@ -5,6 +5,7 @@ import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.Session;
 import com.englishtown.vertx.CassandraPersistence;
 import com.englishtown.vertx.persistence.cassandra.SchemaBuilder;
+import com.englishtown.vertx.persistence.cassandra.impl.DefaultCassandraSession;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.vertx.java.core.AsyncResult;
@@ -54,7 +55,7 @@ public class BasicIntegrationTest extends TestVerticle {
         initSchemas(ip);
         JsonObject config = new JsonObject()
                 .putString("config_keyspace", keyspace)
-                .putArray("ips", new JsonArray().addString(ip));
+                .putArray(DefaultCassandraSession.CONFIG_SEEDS, new JsonArray().addString(ip));
 
         container.deployVerticle(CassandraPersistence.class.getName(), config, new Handler<AsyncResult<String>>() {
             @Override

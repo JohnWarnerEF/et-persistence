@@ -1,0 +1,10 @@
+{
+    "consistency_level": "one",
+    "seeds": ["127.0.0.1"],
+    "policies": {
+        "load_balancing": {
+            "name": "DCAwareRoundRobinPolicy",
+            "local_dc": "datacenter1"
+        }
+    }
+}
