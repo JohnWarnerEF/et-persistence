@@ -5,8 +5,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for {@link MapUtils}
@@ -24,19 +23,32 @@ public class MapUtilsTest {
         String result = MapUtils.get(key, map);
         assertEquals(value, result);
 
+        result = MapUtils.get(key, map, String.class);
+        assertEquals(value, result);
+
+        Object result2 = MapUtils.get(key, map, Object.class);
+        assertEquals(value, result2);
+
     }
 
     @Test
     public void testGet_IllegalCast() throws Exception {
 
+        String result;
         int value = 3;
         map.put(key, value);
+
         try {
-            String result = MapUtils.get(key, map);
-            assertNull(result);
+            //noinspection UnusedAssignment
+            result = MapUtils.get(key, map);
+            fail();
         } catch (ClassCastException e) {
-            // TODO: How to handle ClassCastException in MapUtils?  Only way is getString(), getInt(), getInteger() etc.?  Or also pass the expected class type through to validate?
+            // Expected
         }
 
+        result = MapUtils.get(key, map, String.class);
+        assertNull(result);
+
     }
+
 }

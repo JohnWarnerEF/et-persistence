@@ -12,15 +12,21 @@ public class MapUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(MapUtils.class);
 
+    public static <T> T get(String key, Map<String, Object> map, Class<T> clazz) {
+        T val = get(key, map);
+        if (val != null) {
+            if (!clazz.isAssignableFrom(val.getClass())) {
+                logger.error("Map value {} ({}) for key '{}' is not assignable to {}.", val, val.getClass(), key, clazz);
+                return null;
+            }
+        }
+        return val;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> T get(String key, Map<String, Object> map) {
-        try {
-            Object val = map.get(key);
-            return (T) val;
-        } catch (Throwable t) {
-            logger.error("Error casting map value for key " + key, t);
-            return null;
-        }
+        Object val = map.get(key);
+        return (T) val;
     }
 
 }
