@@ -1,6 +1,7 @@
+#!/bin/sh
 
 # Use HK2 Verticle Factory
-VERTICLE_FACTORY="-Dvertx.langs.java=com.englishtown~vertx-mod-hk2~1.5.0-final:com.englishtown.vertx.hk2.HK2VerticleFactory"
+VERTICLE_FACTORY="-Dvertx.langs.java=com.englishtown~vertx-mod-hk2~1.6.0-SNAPSHOT:com.englishtown.vertx.hk2.HK2VerticleFactory"
 
 # Tell vert.x to use slf4j
 LOG_DELEGATE_FACTORY="-Dorg.vertx.logger-delegate-factory-class-name=org.vertx.java.core.logging.impl.SLF4JLogDelegateFactory"

@@ -14,7 +14,7 @@
 
     <properties>
         <!--Dependency versions-->
-        <cassandra.driver.version>2.0.0-rc1</cassandra.driver.version>
+        <cassandra.driver.version>2.0.0-rc2</cassandra.driver.version>
         <cassandra.entityref.version>1.0.0-SNAPSHOT</cassandra.entityref.version>
     </properties>
 
@@ -46,17 +46,10 @@
 
     <build>
         <plugins>
-
-            <!-- The vert.x Maven plugin -->
-            <plugin>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
-
         </plugins>
     </build>
 

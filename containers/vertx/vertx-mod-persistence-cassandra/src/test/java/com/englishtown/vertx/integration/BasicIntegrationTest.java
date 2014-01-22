@@ -7,7 +7,6 @@ import com.englishtown.vertx.CassandraPersistence;
 import com.englishtown.vertx.persistence.cassandra.SchemaBuilder;
 import com.englishtown.vertx.persistence.cassandra.impl.DefaultCassandraSession;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Future;
 import org.vertx.java.core.Handler;
@@ -27,7 +26,6 @@ import static org.vertx.testtools.VertxAssert.*;
 /**
  *
  */
-@RunWith(CPJavaClassRunner.class)
 public class BasicIntegrationTest extends TestVerticle {
 
     String keyspace = "vertx_mod_persistence_cassandra_tests";
@@ -230,7 +228,9 @@ public class BasicIntegrationTest extends TestVerticle {
 
     private JsonArray createEntities() {
 
-        JsonArray acl = new JsonArray().add(UUID.randomUUID()).add(UUID.randomUUID());
+        JsonArray acl = new JsonArray()
+                .addString(UUID.randomUUID().toString())
+                .addString(UUID.randomUUID().toString());
 
         JsonObject member = new JsonObject()
                 .putString("schema", keyspace)
