@@ -31,7 +31,7 @@
         <vertx.mod.hk2.version>1.6.0-SNAPSHOT</vertx.mod.hk2.version>
 
         <!--Plugin versions-->
-        <maven.vertx.plugin.version>2.0.3-SNAPSHOT</maven.vertx.plugin.version>
+        <maven.vertx.plugin.version>2.0.3-final</maven.vertx.plugin.version>
         <maven.assembly.plugin.version>2.4</maven.assembly.plugin.version>
 
     </properties>
